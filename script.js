@@ -67,12 +67,14 @@ function Gameboard() {
     return { printBoard, placeToken, checkWinner };
 }
 
-function GameController() {
+const message = document.querySelector(".message");
+
+function GameController(player1Name, player2Name) {
     const board = Gameboard(); 
 
     const players = [
-        { name: "Player 1", token: "X" },
-        { name: "Player 2", token: "0" }
+        { name: player1Name, token: "X" },
+        { name: player2Name, token: "0" }
     ];
 
     let activePlayer = players[0]; // Start with player 1
@@ -89,6 +91,7 @@ function GameController() {
     };
 
     const playRound = (row, col) => {
+        const currentToken = activePlayer.token;
         const moveSuccess = board.placeToken(row, col, activePlayer.token);
         
         if (moveSuccess) {
@@ -97,17 +100,65 @@ function GameController() {
             if (winner) {
                 board.printBoard();
                 console.log(`${getActivePlayer().name} wins!`)
-                return;
+                message.textContent = (`${getActivePlayer().name} wins!`);
+                return { success: true, token: currentToken };
             }
 
             switchPlayerTurn();
             printNewRound();
+            return { success: true, token: currentToken };
         }
+
+        return { success: false};
     };
+
     
     printNewRound();
 
     return { printNewRound, getActivePlayer, playRound };
 }
 
-const game = GameController();
+const container = document.querySelector(".container");
+
+function startGame() {
+    const player1Input = document.querySelector(".player-1");
+    const player1Name = player1Input.value;
+    const player2Input = document.querySelector(".player-2");
+    const player2Name = player2Input.value;
+
+    const game = GameController(player1Name, player2Name); 
+
+    for (let i = 0; i < 9; i++) {
+        const square = document.createElement("div");
+        square.classList.add("square");
+
+        const row = Math.floor(i / 3);
+        const col = i % 3; 
+
+        square.dataset.row = row;
+        square.dataset.col = col;
+
+        square.addEventListener("click", () => {
+            const result = game.playRound(row, col);
+            if (result.success) square.textContent = result.token;
+        });
+
+        container.appendChild(square);
+    }
+}
+
+const startButton = document.querySelector(".start");
+startButton.addEventListener("click", () => {
+    startGame();
+});
+
+function restartGame() {
+    container.innerHTML = "";
+    message.textContent = "";
+    startGame();
+}
+
+const restartButton = document.querySelector(".restart");
+restartButton.addEventListener("click", () => {
+    restartGame();      
+})
