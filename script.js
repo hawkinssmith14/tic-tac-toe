@@ -74,7 +74,7 @@ function GameController(player1Name, player2Name) {
 
     const players = [
         { name: player1Name, token: "X" },
-        { name: player2Name, token: "0" }
+        { name: player2Name, token: "O" }
     ];
 
     let activePlayer = players[0]; // Start with player 1
@@ -93,7 +93,7 @@ function GameController(player1Name, player2Name) {
     const playRound = (row, col) => {
         const currentToken = activePlayer.token;
         const moveSuccess = board.placeToken(row, col, activePlayer.token);
-        
+
         if (moveSuccess) {
             const winner = board.checkWinner();
 
@@ -101,12 +101,13 @@ function GameController(player1Name, player2Name) {
                 board.printBoard();
                 console.log(`${getActivePlayer().name} wins!`)
                 message.textContent = (`${getActivePlayer().name} wins!`);
-                return { success: true, token: currentToken };
+                return { success: true, token: currentToken, winner: true };
             }
 
             switchPlayerTurn();
             printNewRound();
-            return { success: true, token: currentToken };
+            message.textContent = `${getActivePlayer().name}'s turn`;
+            return { success: true, token: currentToken, winner: false };
         }
 
         return { success: false};
@@ -122,18 +123,25 @@ const container = document.querySelector(".container");
 
 function startGame() {
     const player1Input = document.querySelector(".player-1");
-    const player1Name = player1Input.value;
+    const player1Name = player1Input.value || "Player 1";
     const player2Input = document.querySelector(".player-2");
-    const player2Name = player2Input.value;
+    const player2Name = player2Input.value || "Player 2";
 
-    const game = GameController(player1Name, player2Name); 
+    const game = GameController(player1Name, player2Name);
+
+    // Disable start button and show whose turn it is
+    startButton.disabled = true;
+    message.textContent = `${player1Name}'s turn`;
+
+    // Show the container
+    container.classList.add("active");
 
     for (let i = 0; i < 9; i++) {
         const square = document.createElement("div");
         square.classList.add("square");
 
         const row = Math.floor(i / 3);
-        const col = i % 3; 
+        const col = i % 3;
 
         square.dataset.row = row;
         square.dataset.col = col;
@@ -155,6 +163,7 @@ startButton.addEventListener("click", () => {
 function restartGame() {
     container.innerHTML = "";
     message.textContent = "";
+    startButton.disabled = false;
     startGame();
 }
 
